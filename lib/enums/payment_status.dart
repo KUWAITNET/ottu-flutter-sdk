@@ -16,7 +16,9 @@ enum PaymentStatus {
 
   /// This means the to setup domainURL in Checkot
   ,
-  DomainURLNotSetuped
+  DomainURLNotSetuped,
+  CodeNotSetuped
+
 }
 
 class PaymentStatusHelper{
@@ -36,6 +38,9 @@ class PaymentStatusHelper{
 
       case"DomainURLNotSetuped":
         return PaymentStatus.DomainURLNotSetuped;
+        
+      case"CodeNotSetuped":
+        return PaymentStatus.CodeNotSetuped;
 
       default:
         return PaymentStatus.NeedSetup;
@@ -57,6 +62,8 @@ extension RawStatus on PaymentStatus {
         return "NeedSetup, This means the to setup domainURL in Checkot";
       case PaymentStatus.SessionIDNotSetuped:
         return "NeedSetup, This means the to setup sessionID in Checkot";
+      case PaymentStatus.CodeNotSetuped:
+        return "NeedSetup, This means the to setup code in Checkot";
       default:
         return "";
     }

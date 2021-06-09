@@ -9,7 +9,7 @@ part of 'payment_item.dart';
 PaymentItem _$PaymentItemFromJson(Map<String, dynamic> json) {
   return PaymentItem(
     json['label'] as String,
-    json['amount'] as int,
+    json['amount'] as double,
   );
 }
 

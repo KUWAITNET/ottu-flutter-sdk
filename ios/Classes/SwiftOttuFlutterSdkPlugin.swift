@@ -1,3 +1,11 @@
+//
+//  SwiftOttuFlutterSdkPlugin.swift
+//  Ottu Flutter SDK
+//
+//  Created by Saad Alkentar on 12/5/21.
+//  Copyright © 2020 Saad. All rights reserved.
+//
+
 import Flutter
 import UIKit
 import PassKit
@@ -42,7 +50,7 @@ public class SwiftOttuFlutterSdkPlugin: NSObject, FlutterPlugin {
         let code = args[8] as! String
 
         
-        presentViewController(with: countryCode!, paymentCards:paymentCards, paymentItems: paymentItems, paymentAmount: paymentAmount, currencyCode: currencyCode!, merchantID: merchantID, domain: domain, sessionID: sessionId, code: code)
+        presentViewController(with: countryCode!, paymentCards:paymentCards, paymentItems: paymentItems, paymentAmount: paymentAmount, currencyCode: currencyCode!, merchantID: merchantID, domain: domain, sessionID: sessionId,code: code)
         result("payment")
         
         
@@ -54,31 +62,94 @@ public class SwiftOttuFlutterSdkPlugin: NSObject, FlutterPlugin {
     
 }
     
+    var checkout = Checkout()
     
-    func presentViewController(with countryCode:CountryCode, paymentCards:[TapApplePayPaymentNetwork], paymentItems:[PKPaymentSummaryItem], paymentAmount:Double, currencyCode:CurrencyCode, merchantID:String, domain:String, sessionID:String, code:String){
+    func presentViewController(
+        with countryCode:CountryCode,
+        paymentCards:[TapApplePayPaymentNetwork],
+        paymentItems:[PKPaymentSummaryItem],
+        paymentAmount:Double,
+        currencyCode:CurrencyCode,
+        merchantID:String,
+        domain:String,
+        sessionID:String,
+        code:String){
         
         
-        let bundle = Bundle(identifier: "org.cocoapods.ottu-flutter-sdk")
-        let viewController = PaymentViewController(nibName: "PaymentViewController", bundle: bundle)
-        viewController.currencyCode = currencyCode
-        viewController.paymentCards = paymentCards
-        viewController.paymentItems = paymentItems
-        viewController.paymentAmount = paymentAmount
-        viewController.currencyCode = currencyCode
-        viewController.merchantID = merchantID
-        viewController.domain = domain
-        viewController.sessionID = sessionID
-        viewController.code = code
-        
-        viewController.channel = SwiftOttuFlutterSdkPlugin.channel
 
         let rootViewController:UIViewController! = UIApplication.shared.keyWindow?.rootViewController
-        if (rootViewController is UINavigationController) {
-            (rootViewController as! UINavigationController).pushViewController(viewController,animated:true)
-        } else {
-            let navigationController:UINavigationController! = UINavigationController(rootViewController:viewController)
-          rootViewController.present(navigationController, animated:true, completion:nil)
+        
+        
+        let config = ApplePayConfig()
+        config.merchantID = merchantID
+        config.cards = paymentCards
+        config.countryCode = countryCode
+        config.merchantCapabilities = [.capability3DS]
+        config.paymentItems = paymentItems
+        config.code = code
+
+        self.checkout.delegate = self
+        self.checkout.sessionID = sessionID
+        self.checkout.domainURL = domain
+        self.checkout.configure(applePayConfig: config, amount: String(paymentAmount), currency_code: currencyCode, viewController: rootViewController)
+        let result = self.checkout.pay(viewController: rootViewController)
+
+        switch result {
+        case .Eligible:
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentInfo", arguments: "Eligible")
+            break
+        case .NeedSetup:
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentInfo", arguments: "NeedSetup")
+            break
+        case .NotEligible:
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentInfo", arguments: "NotEligible")
+            break
+        case .SessionIDNotSetuped:
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentInfo", arguments: "SessionIDNotSetuped")
+            break
+        case .DomainURLNotSetuped:
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentInfo", arguments: "DomainURLNotSetuped")
+            break
+        case .CodeNotSetuped:
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentInfo", arguments: "CodeNotSetuped")
         }
+        
+    }
+    
+}
+
+extension SwiftOttuFlutterSdkPlugin : CheckoutDelegate{
+    
+    public func onErrorHandler(serverResponse: [String : Any]?, statusCode: Int?, error: Error?) {
+        // Check any error from server
+        
+        let jsonData = try? JSONSerialization.data(withJSONObject: serverResponse ?? [:], options: [])
+        let jsonString = String(data: jsonData!, encoding: String.Encoding.ascii)
+        
+        SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentError", arguments: [statusCode ?? 200, jsonString ?? "{}"])
+
+    }
+    
+    public func paymentFinished(yourDomainResponse: [String:Any], applePayResultCompletion: @escaping (PKPaymentAuthorizationResult) -> Void) {
+        
+
+        
+        if let approved = yourDomainResponse["approved"], approved as! Bool == true {
+            applePayResultCompletion(PKPaymentAuthorizationResult(status: .success, errors: nil))
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentFinished", arguments: true)
+
+        }
+        else {
+            applePayResultCompletion(PKPaymentAuthorizationResult(status: .failure, errors: nil))
+            SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentFinished", arguments: false)
+
+        }
+    }
+    
+    
+    public func paymentDissmised() {
+        SwiftOttuFlutterSdkPlugin.channel?.invokeMethod("paymentDissmised", arguments: nil)
+
     }
     
 }

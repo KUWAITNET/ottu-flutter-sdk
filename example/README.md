@@ -1,6 +1,6 @@
-# ottu_flutter_sdk_example
+# new_example
 
-Demonstrates how to use the ottu_flutter_sdk plugin.
+A new Flutter project.
 
 ## Getting Started
 

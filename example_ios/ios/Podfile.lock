@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - ottu_flutter_sdk (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - ottu_flutter_sdk (from `.symlinks/plugins/ottu_flutter_sdk/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  ottu_flutter_sdk:
+    :path: ".symlinks/plugins/ottu_flutter_sdk/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+  ottu_flutter_sdk: 0d3cf4cb6baed54207be04c9dd2278a6d1bb7f48
+
+PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
+
+COCOAPODS: 1.10.1

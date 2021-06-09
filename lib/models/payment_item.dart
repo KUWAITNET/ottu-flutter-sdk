@@ -7,9 +7,11 @@ part 'payment_item.g.dart';
 class PaymentItem {
 
   PaymentItem(this.label, this.amount);
-
+  /// item name
   @JsonKey(name: 'label') String label;
-  @JsonKey(name: 'amount') int amount;
+
+  /// item cost
+  @JsonKey(name: 'amount') double amount;
 
   factory PaymentItem.fromJson(Map<String,dynamic> json) => _$PaymentItemFromJson(json);
   Map<String, dynamic> toJson() => _$PaymentItemToJson(this);
